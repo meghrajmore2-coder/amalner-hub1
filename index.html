@@ -3,61 +3,213 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Amalner Hub – Connecting the Town</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Amalner Hub</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(to right, #f5f7fa, #c3cfe2);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      animation: fadeIn 1s ease-in;
+    }
+    header {
+      background-color: #009688;
+      color: white;
+      text-align: center;
+      padding: 1.2rem 0;
+      font-size: 1.6rem;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      animation: slideDown 0.8s ease;
+    }
+    main {
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      gap: 20px;
+      padding: 20px;
+      flex-grow: 1;
+    }
+    .sidebar, .ads, .content {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 15px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 0.8s forwards;
+    }
+    .sidebar { animation-delay: 0.2s; }
+    .content { animation-delay: 0.4s; }
+    .ads { animation-delay: 0.6s; }
+    .sidebar h3, .ads h3, .content h3 {
+      color: #009688;
+      margin-bottom: 10px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    ul li { margin: 8px 0; }
+    ul li a {
+      text-decoration: none;
+      color: #333;
+      transition: color 0.3s;
+    }
+    ul li a:hover { color: #009688; }
+    .post {
+      border-bottom: 1px solid #eee;
+      padding: 10px 0;
+    }
+    .post:last-child { border: none; }
+    .post h4 { margin: 0; color: #333; }
+    .actions { margin-top: 8px; }
+    .actions button {
+      border: none;
+      background: #009688;
+      color: white;
+      padding: 6px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-right: 5px;
+      transition: background 0.3s;
+    }
+    .actions button:hover { background: #00796b; }
+    footer {
+      background: #004d40;
+      color: white;
+      text-align: center;
+      padding: 10px 0;
+      font-size: 0.9rem;
+    }
+    .ad-tile {
+      background: #e0f7fa;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      text-align: center;
+      transition: transform 0.3s;
+    }
+    .ad-tile:hover { transform: scale(1.05); }
+    .form-container {
+      margin-top: 20px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      padding: 15px;
+      border: 1px solid #eee;
+    }
+    .form-container input, .form-container textarea {
+      width: 100%;
+      margin: 5px 0;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .form-container button {
+      background: #00796b;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .form-container button:hover { background: #004d40; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideDown {
+      from { transform: translateY(-50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @media (max-width: 768px) {
+      main { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-  <header class="fade-in">
-    <h1>🌐 Amalner Hub – Connecting the Town</h1>
-  </header>
+  <header>🌐 Amalner Hub</header>
 
-  <main class="container">
-    <aside class="left-panel fade-in">
-      <h2>Public Resources</h2>
+  <main>
+    <section class="sidebar">
+      <h3>Useful Resources</h3>
       <ul>
-        <li><a href="#">Amalner Municipality</a></li>
-        <li><a href="#">Local News</a></li>
-        <li><a href="#">Education Board</a></li>
-        <li><a href="#">Health Centers</a></li>
-        <li><a href="#">Emergency Numbers</a></li>
+        <li><a href="#">Local News Portal</a></li>
+        <li><a href="#">Government Schemes</a></li>
+        <li><a href="#">Education Updates</a></li>
+        <li><a href="#">Healthcare Services</a></li>
       </ul>
-    </aside>
-
-    <section class="middle-panel">
-      <article class="blog-card slide-up">
-        <img src="https://source.unsplash.com/800x400/?town,news" alt="Blog 1" />
-        <h3>Amalner Festival Highlights 2025 🎉</h3>
-        <p>Celebrating unity, culture, and heritage — the annual Amalner Festival brings together communities with music, food, and local art.</p>
-        <button>Read More</button>
-      </article>
-
-      <article class="blog-card slide-up">
-        <img src="https://source.unsplash.com/800x400/?community,event" alt="Blog 2" />
-        <h3>Local Entrepreneurs Driving Change 🚀</h3>
-        <p>Meet the small businesses and startups shaping Amalner’s economy with creativity and innovation.</p>
-        <button>Read More</button>
-      </article>
-
-      <article class="blog-card slide-up">
-        <img src="https://source.unsplash.com/800x400/?education,school" alt="Blog 3" />
-        <h3>Education for All: Initiatives That Inspire 📚</h3>
-        <p>Discover the programs empowering students in rural Amalner with quality learning and mentorship opportunities.</p>
-        <button>Read More</button>
-      </article>
     </section>
 
-    <aside class="right-panel fade-in">
-      <h2>Advertisements</h2>
-      <div class="ad-card">Your Ad Here</div>
-      <div class="ad-card">Local Business</div>
-      <div class="ad-card">Community Event</div>
-    </aside>
+    <section class="content">
+      <h3>Community Posts</h3>
+      <div id="posts">
+        <div class="post">
+          <h4>Amalner Clean Drive 2025</h4>
+          <p>Join us for a city-wide clean-up drive this weekend. Let's make Amalner greener!</p>
+          <div class="actions">
+            <button>👍 Like</button>
+            <button>💬 Comment</button>
+            <button class="delete-btn" style="display:none;">🗑 Delete</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-container">
+        <h4>Submit Your Post</h4>
+        <input type="text" id="postTitle" placeholder="Post title..." />
+        <textarea id="postContent" rows="3" placeholder="Write your post here..."></textarea>
+        <button onclick="addPost()">Submit</button>
+      </div>
+
+      <div style="margin-top:15px;">
+        <button onclick="toggleAdmin()">🔑 Admin Login</button>
+      </div>
+    </section>
+
+    <section class="ads">
+      <h3>Sponsored Ads</h3>
+      <a href="https://example.com" target="_blank"><div class="ad-tile">🌾 Organic Store - Fresh Farm Products</div></a>
+      <a href="https://example.com" target="_blank"><div class="ad-tile">🏠 Real Estate - Find your dream home in Amalner</div></a>
+      <a href="https://example.com" target="_blank"><div class="ad-tile">🎓 Coaching Classes - Admissions Open</div></a>
+    </section>
   </main>
 
-  <footer class="fade-in">
-    <p>© 2025 Amalner Hub | Designed by Meghraj More</p>
-  </footer>
+  <footer>© 2025 Amalner Hub | Designed by Meghraj More</footer>
 
-  <script src="script.js"></script>
+  <script>
+    let adminMode = false;
+
+    function addPost() {
+      const title = document.getElementById('postTitle').value.trim();
+      const content = document.getElementById('postContent').value.trim();
+      if (!title || !content) {
+        alert('Please fill in both fields!');
+        return;
+      }
+      const postDiv = document.createElement('div');
+      postDiv.className = 'post';
+      postDiv.innerHTML = `
+        <h4>${title}</h4>
+        <p>${content}</p>
+        <div class="actions">
+          <button>👍 Like</button>
+          <button>💬 Comment</button>
+          <button class="delete-btn" style="display:${adminMode ? 'inline-block' : 'none'};">🗑 Delete</button>
+        </div>`;
+      document.getElementById('posts').appendChild(postDiv);
+      document.getElementById('postTitle').value = '';
+      document.getElementById('postContent').value = '';
+    }
+
+    function toggleAdmin() {
+      adminMode = !adminMode;
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.style.display = adminMode ? 'inline-block' : 'none';
+        btn.onclick = () => btn.closest('.post').remove();
+      });
+      alert(adminMode ? 'Admin mode activated 🔐' : 'Admin mode off');
+    }
+  </script>
 </body>
 </html>
