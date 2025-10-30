@@ -1,143 +1,184 @@
-<script type="module">
-/* ---------- Firebase + Firestore client code for Amalner Hub (Admin-only post creation) ---------- */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amalner Hub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    🌐 Amalner Hub
+  </header>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import {
-  getFirestore, collection, onSnapshot, query, orderBy, deleteDoc, doc, updateDoc, increment, addDoc
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-import {
-  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+  <main>
+    <!-- Left Sidebar -->
+    <section class="sidebar">
+      <h3>Useful Links</h3>
+      <ul>
+        <li><a href="#">Local News</a></li>
+        <li><a href="#">Education Updates</a></li>
+        <li><a href="#">Healthcare Services</a></li>
+        <li><a href="#">Government Schemes</a></li>
+      </ul>
+    </section>
 
-/* --------- REPLACE THIS CONFIG with your Firebase project's config --------- */
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  // ...other keys from Firebase console
-};
-/* -------------------------------------------------------------------------- */
+    <!-- Main Content -->
+    <section class="content">
+      <h3>Community Posts</h3>
+      <div id="posts"></div>
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+      <div style="margin-top:15px;">
+        <button onclick="toggleAdmin()">🔑 Admin Login</button>
+      </div>
+    </section>
 
-/* DOM refs */
-const postsDiv = document.getElementById('posts');
-const adminToggleBtn = document.querySelector('button[onclick="toggleAdmin()"]');
-let currentUser = null;
+    <!-- Right Sidebar (Ads) -->
+    <section class="ads">
+      <h3>Sponsored Ads</h3>
+      <a href="#" target="_blank"><div class="ad-tile">🏡 Real Estate Offers</div></a>
+      <a href="#" target="_blank"><div class="ad-tile">🎓 Coaching Admissions</div></a>
+      <a href="#" target="_blank"><div class="ad-tile">🍽️ Local Restaurants</div></a>
+    </section>
+  </main>
 
-/* Real-time listener for posts */
-const postsCol = collection(db, 'posts');
-const postsQuery = query(postsCol, orderBy('createdAt', 'desc'));
+  <footer>
+    © 2025 Amalner Hub | Designed by Meghraj More
+  </footer>
 
-/* Render helper */
-function makePostElement(id, data, isAdmin){
-  const div = document.createElement('div');
-  div.className = 'post';
-  div.dataset.id = id;
-  div.innerHTML = `
-    <h4>${escapeHtml(data.title)}</h4>
-    <p>${escapeHtml(data.content)}</p>
-    <div class="actions">
-      <button class="like-btn">👍 ${data.likes || 0}</button>
-      <button class="comment-open-btn">💬 Comment</button>
-      ${isAdmin ? '<button class="delete-btn">🗑 Delete</button>' : ''}
-    </div>
-    <div class="comments" style="margin-top:8px;"></div>
-  `;
-  
-  // like handler
-  div.querySelector('.like-btn').addEventListener('click', async () => {
-    const docRef = doc(db, 'posts', id);
-    await updateDoc(docRef, { likes: increment(1) });
-  });
+  <!-- Firebase + App Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import {
+      getFirestore, collection, onSnapshot, query, orderBy, deleteDoc, doc, updateDoc, increment, addDoc
+    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import {
+      getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
-  // delete handler (admin only)
-  if (isAdmin){
-    div.querySelector('.delete-btn').addEventListener('click', async () => {
-      if (!confirm('Delete this post?')) return;
-      await deleteDoc(doc(db, 'posts', id));
-    });
-  }
+    // 🔧 Replace with your own Firebase config
+    const firebaseConfig = {
+    apiKey: "AIzaSyDpnHFN2q5i2lwLIyrhP9GRCqU4HHGAAWM",
+    authDomain: "amalnerin.firebaseapp.com",
+    projectId: "amalnerin",
+    storageBucket: "amalnerin.firebasestorage.app",
+    messagingSenderId: "545247991173",
+    appId: "1:545247991173:web:0a8a1977045af85eeb60ec",
+    measurementId: "G-VZVZ6FH5PC"
+  };
 
-  // comment open — inline form
-  div.querySelector('.comment-open-btn').addEventListener('click', () => {
-    const commentsDiv = div.querySelector('.comments');
-    if (commentsDiv.querySelector('form')) return;
-    const form = document.createElement('form');
-    form.innerHTML = `
-      <input type="text" name="comment" placeholder="Write comment..." style="width:70%;padding:6px;border-radius:4px;border:1px solid #ccc" />
-      <button type="submit" style="padding:6px 8px;margin-left:6px;">Post</button>
-    `;
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const text = form.comment.value.trim();
-      if (!text) return;
-      await addDoc(collection(db, 'posts', id, 'comments'), {
-        text,
-        author: currentUser?.email || 'Guest',
-        createdAt: Date.now()
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const postsDiv = document.getElementById('posts');
+    let currentUser = null;
+
+    // Live post feed
+    const postsCol = collection(db, 'posts');
+    const postsQuery = query(postsCol, orderBy('createdAt', 'desc'));
+
+    function escapeHtml(s){
+      return (s+'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    function makePostElement(id, data, isAdmin){
+      const div = document.createElement('div');
+      div.className = 'post';
+      div.innerHTML = `
+        <h4>${escapeHtml(data.title)}</h4>
+        <p>${escapeHtml(data.content)}</p>
+        <div class="actions">
+          <button class="like-btn">👍 ${data.likes || 0}</button>
+          <button class="comment-btn">💬 Comment</button>
+          ${isAdmin ? '<button class="delete-btn">🗑 Delete</button>' : ''}
+        </div>
+        <div class="comments"></div>
+      `;
+
+      // Like
+      div.querySelector('.like-btn').addEventListener('click', async () => {
+        await updateDoc(doc(db, 'posts', id), { likes: increment(1) });
       });
-      form.comment.value = '';
-    });
-    commentsDiv.appendChild(form);
-    const commentsQuery = query(collection(db, 'posts', id, 'comments'), orderBy('createdAt', 'asc'));
-    onSnapshot(commentsQuery, (snap) => {
-      commentsDiv.querySelectorAll('.comment-item').forEach(n => n.remove());
-      snap.forEach(csnap => {
-        const c = csnap.data();
-        const el = document.createElement('div');
-        el.className = 'comment-item';
-        el.style.marginTop = '8px';
-        el.innerHTML = `<small style="color:#666">${escapeHtml(c.author)}</small><div>${escapeHtml(c.text)}</div>`;
-        commentsDiv.appendChild(el);
+
+      // Comment
+      div.querySelector('.comment-btn').addEventListener('click', () => {
+        const commentsDiv = div.querySelector('.comments');
+        if (commentsDiv.querySelector('form')) return;
+        const form = document.createElement('form');
+        form.innerHTML = `
+          <input type="text" name="comment" placeholder="Write comment..." />
+          <button type="submit">Post</button>
+        `;
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const text = form.comment.value.trim();
+          if (!text) return;
+          await addDoc(collection(db, 'posts', id, 'comments'), {
+            text,
+            author: currentUser?.email || 'Guest',
+            createdAt: Date.now()
+          });
+          form.comment.value = '';
+        });
+        commentsDiv.appendChild(form);
+        const commentsQuery = query(collection(db, 'posts', id, 'comments'), orderBy('createdAt', 'asc'));
+        onSnapshot(commentsQuery, (snap) => {
+          commentsDiv.querySelectorAll('.comment-item').forEach(n => n.remove());
+          snap.forEach(csnap => {
+            const c = csnap.data();
+            const el = document.createElement('div');
+            el.className = 'comment-item';
+            el.innerHTML = `<small>${escapeHtml(c.author)}</small><div>${escapeHtml(c.text)}</div>`;
+            commentsDiv.appendChild(el);
+          });
+        });
+      });
+
+      // Delete (admin)
+      if (isAdmin) {
+        div.querySelector('.delete-btn').addEventListener('click', async () => {
+          if (confirm('Delete this post?')) {
+            await deleteDoc(doc(db, 'posts', id));
+          }
+        });
+      }
+      return div;
+    }
+
+    onSnapshot(postsQuery, (snap) => {
+      postsDiv.innerHTML = '';
+      snap.forEach(docSnap => {
+        const data = docSnap.data();
+        const id = docSnap.id;
+        const isAdmin = currentUser?.email === "your-admin-email@example.com"; // change this
+        postsDiv.appendChild(makePostElement(id, data, isAdmin));
       });
     });
-  });
-  return div;
-}
 
-/* Real-time subscription to posts */
-onSnapshot(postsQuery, (snap) => {
-  postsDiv.innerHTML = '';
-  snap.forEach(docSnap => {
-    const data = docSnap.data();
-    const id = docSnap.id;
-    const isAdmin = currentUser?.email === "your-admin-email@example.com"; // Replace this with your admin email
-    const el = makePostElement(id, data, isAdmin);
-    postsDiv.appendChild(el);
-  });
-});
+    window.toggleAdmin = async function(){
+      if (currentUser){
+        await signOut(auth);
+        alert('Signed out');
+        return;
+      }
+      const email = prompt('Admin email:');
+      const pass = prompt('Password:');
+      if (!email || !pass) return;
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+        alert('Admin signed in');
+      } catch (e){
+        alert('Login failed: ' + e.message);
+      }
+    };
 
-/* Admin login flow */
-window.toggleAdmin = async function(){
-  if (currentUser){
-    await signOut(auth);
-    alert('Signed out');
-    return;
-  }
-  const email = prompt('Admin email:');
-  const pass = prompt('Password:');
-  if (!email || !pass) return;
-  try {
-    await signInWithEmailAndPassword(auth, email, pass);
-    alert('Signed in as admin');
-  } catch (err){
-    alert('Sign-in failed: ' + err.message);
-  }
-};
-
-/* Track auth state */
-onAuthStateChanged(auth, (user) => {
-  currentUser = user;
-  document.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.style.display = user ? 'inline-block' : 'none';
-  });
-});
-
-/* Helper */
-function escapeHtml(s){
-  return (s+'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-</script>
+    onAuthStateChanged(auth, user => {
+      currentUser = user;
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.style.display = user ? 'inline-block' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>
